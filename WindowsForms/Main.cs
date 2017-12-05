@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using LeanCloud;
 using LeanCloud.Realtime;
@@ -63,7 +64,18 @@ namespace Demo.LeanCloud.WindowsForms
         /// </summary>
         private void RefreshFriends()
         {
-            lb_Friends.Items.Add("Jerry");
+            List<string> friends = GetAllFriends(_client.ClientId);
+            lb_Friends.Items.Clear();
+            foreach (var friend in friends)
+            {
+                lb_Friends.Items.Add(friend);
+            }
+        }
+
+        private List<string> GetAllFriends(string clientClientId)
+        {
+            var defaultUser = new List<string> { "Kodofish", "Andy", "Neo", "Jerry" };
+            return defaultUser.Where(it => it.ToLower() != clientClientId.ToLower()).ToList();
         }
 
         /// <summary>
