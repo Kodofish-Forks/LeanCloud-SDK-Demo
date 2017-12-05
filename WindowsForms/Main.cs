@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using LeanCloud;
 using LeanCloud.Realtime;
@@ -17,6 +18,9 @@ namespace Demo.LeanCloud.WindowsForms
         private IList<IAVIMMessage> _messages;
         private AVRealtime _realtime;
 
+        delegate void OnRecivedIMMessage(IAVIMMessage message);
+        delegate void OnRecivedIMOffLineMessage(IAVIMMessage message);
+
         public Main()
         {
             InitializeComponent();
@@ -24,6 +28,7 @@ namespace Demo.LeanCloud.WindowsForms
 
         private void Main_Load(object sender, EventArgs e)
         {
+            _messages = new List<IAVIMMessage>();
             var config = new AVClient.Configuration
             {
                 ApplicationId = _applicationId,
@@ -40,12 +45,23 @@ namespace Demo.LeanCloud.WindowsForms
             //地雷!! 要先執行這行, 不然後面在CreateClientAsync時會報 WebSocket 沒有初始化的錯誤
             WebsocketConnection.Link();
 
+            
+
             _realtime = new AVRealtime(new AVRealtime.Configuration
             {
                 ApplicationId = _applicationId,
                 ApplicationKey = _applicationKey
                 //RTMRouter = new Uri("http://im-router.phyuance.com")
             });
+
+            _realtime.OnOfflineMessageReceived += (o, args) =>
+            {
+                OnRecivedIMOffLineMessage a = RecivedOfflineMessage;
+                Invoke(a, args.Message);
+            };
+
+
+
         }
 
         #region UI        
@@ -100,8 +116,13 @@ namespace Demo.LeanCloud.WindowsForms
                 return;
             }
 
+            IDictionary<string, object> attr = new Dictionary<string, object>();
+            attr.Add("type", "private");
+            attr.Add("isSticky", false);
+
             AddConsoleMessage($"建立 {tb_UserName.Text} 與 {friendName} 對話");
-            _conversation = await _client.CreateConversationAsync(friendName, name: $"{tb_UserName.Text} and {friendName} conversation");
+            _conversation = await _client.CreateConversationAsync(friendName, name: $"{tb_UserName.Text} and {friendName} conversation", options:attr);
+            
             RefreshConversation();
             AddConsoleMessage($"對話建立完成. ConversationId= {_conversation.ConversationId}");
         }
@@ -125,6 +146,10 @@ namespace Demo.LeanCloud.WindowsForms
                     if (!(message is AVIMTextMessage m)) return;
                     tb_Conversation.Text += $"{m.ServerTimestamp} - {m.FromClientId} 說 {m.TextContent} {Environment.NewLine}";
                     break;
+                case "AVIMBinaryMessage":
+                    if (!(message is AVIMBinaryMessage bm)) return;
+                    tb_Conversation.Text += $"{bm.ServerTimestamp} - {bm.FromClientId} 說 {bm.Content} {Environment.NewLine}";
+                    break;
                 default:
                     break;
             }
@@ -147,12 +172,34 @@ namespace Demo.LeanCloud.WindowsForms
                 MessageBox.Show("請輸入使用者名稱");
                 return;
             }
-
+            tb_Conversation.Text = string.Empty;
             AddConsoleMessage($"開始登入 {tb_UserName.Text}");
 
             _client = await _realtime.CreateClientAsync(tb_UserName.Text);
+            _client.OnMessageReceived += ClientOnOnMessageReceived;
+
+            ClearConversation();
             RefreshFriends();
             AddConsoleMessage($"{tb_UserName.Text} 登入成功");
+        }
+
+        private void ClearConversation()
+        {
+            _conversation = null;
+            tb_Conversation.Text = String.Empty;
+            lb_ConversationTitle.Text = "對話內容";
+        }
+
+        /// <summary>
+        ///     在線接收訊息
+        /// Clients the on on message received.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="avimMessageEventArgs">The <see cref="AVIMMessageEventArgs"/> instance containing the event data.</param>
+        private void ClientOnOnMessageReceived(object sender, AVIMMessageEventArgs avimMessageEventArgs)
+        {
+            OnRecivedIMMessage a = RecivedMessage;
+            Invoke(a, avimMessageEventArgs.Message);
         }
 
         /// <summary>
@@ -174,8 +221,8 @@ namespace Demo.LeanCloud.WindowsForms
             var message = new AVIMTextMessage(tb_Message.Text);
 
             var sendResult = await _conversation.SendMessageAsync(message);
-            _messages.Add(sendResult);
-            DisplayMessage(sendResult);
+            //_messages.Add(sendResult);
+            //DisplayMessage(sendResult);
             AddConsoleMessage($"傳送訊息-結束, Message.Id:{sendResult.Id}");
             tb_Message.Text = string.Empty;
             tb_Message.Focus();
@@ -191,8 +238,25 @@ namespace Demo.LeanCloud.WindowsForms
             if (e.KeyChar == (int)Keys.Enter)
                 bt_Login_Click(bt_Login, null);
         }
+
         #endregion
 
+        private void RecivedMessage(IAVIMMessage message)
+        {
+            if (_messages.Any(it => it.Id == message.Id)) return;
 
+            _messages.Add(message);
+            AddConsoleMessage($"已接收來自到 {message.FromClientId} 訊息.");
+            DisplayMessage(message);
+        }
+
+        private void RecivedOfflineMessage(IAVIMMessage message)
+        {
+            if (_messages.Any(it => it.Id == message.Id)) return;
+
+            _messages.Add(message);
+            AddConsoleMessage($"已接收來自到 {message.FromClientId} 的離線訊息.");
+            DisplayMessage(message);
+        }
     }
 }
