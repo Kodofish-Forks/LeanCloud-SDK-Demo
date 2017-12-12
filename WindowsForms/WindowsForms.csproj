@@ -62,7 +62,7 @@
       <HintPath>..\packages\LeanCloud.LiveQuery.2017.10.19.1\lib\net45\LeanCloud.LiveQuery.dll</HintPath>
     </Reference>
     <Reference Include="LeanCloud.Realtime, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LeanCloud.Realtime.2017.11.29.1\lib\net45\LeanCloud.Realtime.dll</HintPath>
+      <HintPath>..\packages\LeanCloud.Realtime.2017.12.8.4\lib\net45\LeanCloud.Realtime.dll</HintPath>
     </Reference>
     <Reference Include="LeanCloud.Storage, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LeanCloud.Storage.2017.11.20.1\lib\net45\LeanCloud.Storage.dll</HintPath>
