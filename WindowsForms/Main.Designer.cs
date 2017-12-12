@@ -34,18 +34,21 @@
             this.bt_Login = new System.Windows.Forms.Button();
             this.lb_Friends = new System.Windows.Forms.ListBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.tb_Conversation = new System.Windows.Forms.TextBox();
+            this.tb_ConversationContent = new System.Windows.Forms.TextBox();
             this.lb_ConversationTitle = new System.Windows.Forms.Label();
             this.tb_Message = new System.Windows.Forms.TextBox();
             this.bt_SendMessage = new System.Windows.Forms.Button();
+            this.lb_ConversationList = new System.Windows.Forms.ListBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // tb_Console
             // 
-            this.tb_Console.Location = new System.Drawing.Point(-3, 734);
+            this.tb_Console.Location = new System.Drawing.Point(33, 658);
             this.tb_Console.Multiline = true;
             this.tb_Console.Name = "tb_Console";
-            this.tb_Console.Size = new System.Drawing.Size(1166, 250);
+            this.tb_Console.Size = new System.Drawing.Size(1685, 232);
             this.tb_Console.TabIndex = 0;
             // 
             // tb_UserName
@@ -79,9 +82,9 @@
             // 
             this.lb_Friends.FormattingEnabled = true;
             this.lb_Friends.ItemHeight = 24;
-            this.lb_Friends.Location = new System.Drawing.Point(33, 164);
+            this.lb_Friends.Location = new System.Drawing.Point(33, 178);
             this.lb_Friends.Name = "lb_Friends";
-            this.lb_Friends.Size = new System.Drawing.Size(396, 412);
+            this.lb_Friends.Size = new System.Drawing.Size(278, 412);
             this.lb_Friends.TabIndex = 4;
             this.lb_Friends.SelectedIndexChanged += new System.EventHandler(this.lb_Friends_SelectedIndexChanged);
             // 
@@ -94,18 +97,18 @@
             this.label2.TabIndex = 5;
             this.label2.Text = "好友名單";
             // 
-            // tb_Conversation
+            // tb_ConversationContent
             // 
-            this.tb_Conversation.Location = new System.Drawing.Point(458, 164);
-            this.tb_Conversation.Multiline = true;
-            this.tb_Conversation.Name = "tb_Conversation";
-            this.tb_Conversation.Size = new System.Drawing.Size(686, 346);
-            this.tb_Conversation.TabIndex = 6;
+            this.tb_ConversationContent.Location = new System.Drawing.Point(1032, 178);
+            this.tb_ConversationContent.Multiline = true;
+            this.tb_ConversationContent.Name = "tb_ConversationContent";
+            this.tb_ConversationContent.Size = new System.Drawing.Size(686, 370);
+            this.tb_ConversationContent.TabIndex = 6;
             // 
             // lb_ConversationTitle
             // 
             this.lb_ConversationTitle.AutoSize = true;
-            this.lb_ConversationTitle.Location = new System.Drawing.Point(458, 133);
+            this.lb_ConversationTitle.Location = new System.Drawing.Point(1028, 134);
             this.lb_ConversationTitle.Name = "lb_ConversationTitle";
             this.lb_ConversationTitle.Size = new System.Drawing.Size(106, 24);
             this.lb_ConversationTitle.TabIndex = 7;
@@ -113,7 +116,7 @@
             // 
             // tb_Message
             // 
-            this.tb_Message.Location = new System.Drawing.Point(458, 534);
+            this.tb_Message.Location = new System.Drawing.Point(1032, 554);
             this.tb_Message.Name = "tb_Message";
             this.tb_Message.Size = new System.Drawing.Size(574, 36);
             this.tb_Message.TabIndex = 8;
@@ -121,7 +124,7 @@
             // 
             // bt_SendMessage
             // 
-            this.bt_SendMessage.Location = new System.Drawing.Point(1038, 534);
+            this.bt_SendMessage.Location = new System.Drawing.Point(1612, 554);
             this.bt_SendMessage.Name = "bt_SendMessage";
             this.bt_SendMessage.Size = new System.Drawing.Size(106, 36);
             this.bt_SendMessage.TabIndex = 9;
@@ -129,15 +132,46 @@
             this.bt_SendMessage.UseVisualStyleBackColor = true;
             this.bt_SendMessage.Click += new System.EventHandler(this.bt_SendMessage_Click);
             // 
+            // lb_ConversationList
+            // 
+            this.lb_ConversationList.FormattingEnabled = true;
+            this.lb_ConversationList.ItemHeight = 24;
+            this.lb_ConversationList.Location = new System.Drawing.Point(317, 178);
+            this.lb_ConversationList.Name = "lb_ConversationList";
+            this.lb_ConversationList.Size = new System.Drawing.Size(709, 412);
+            this.lb_ConversationList.TabIndex = 10;
+            this.lb_ConversationList.SelectedIndexChanged += new System.EventHandler(this.lb_ConversationList_SelectedIndexChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(317, 133);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(106, 24);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "對話列表";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(33, 620);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(106, 24);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "系統訊息";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1156, 979);
+            this.ClientSize = new System.Drawing.Size(1728, 905);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.lb_ConversationList);
             this.Controls.Add(this.bt_SendMessage);
             this.Controls.Add(this.tb_Message);
             this.Controls.Add(this.lb_ConversationTitle);
-            this.Controls.Add(this.tb_Conversation);
+            this.Controls.Add(this.tb_ConversationContent);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.lb_Friends);
             this.Controls.Add(this.bt_Login);
@@ -160,9 +194,12 @@
         private System.Windows.Forms.Button bt_Login;
         private System.Windows.Forms.ListBox lb_Friends;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox tb_Conversation;
+        private System.Windows.Forms.TextBox tb_ConversationContent;
         private System.Windows.Forms.Label lb_ConversationTitle;
         private System.Windows.Forms.TextBox tb_Message;
         private System.Windows.Forms.Button bt_SendMessage;
+        private System.Windows.Forms.ListBox lb_ConversationList;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
     }
 }

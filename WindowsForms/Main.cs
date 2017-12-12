@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using LeanCloud;
 using LeanCloud.Realtime;
@@ -11,15 +10,11 @@ namespace Demo.LeanCloud.WindowsForms
 {
     public partial class Main : Form
     {
-        private readonly string _applicationId = "bBPbOUuF6mEmL0knL3wnW00b-gzGzoHsz";
-        private readonly string _applicationKey = "tCx1qE0VNNghnch5n8PjpgGX";
         private AVIMClient _client;
         private AVIMConversation _conversation;
+        private IEnumerable<AVIMConversation> _conversations;
         private IList<IAVIMMessage> _messages;
         private AVRealtime _realtime;
-
-        delegate void OnRecivedIMMessage(IAVIMMessage message);
-        delegate void OnRecivedIMOffLineMessage(IAVIMMessage message);
 
         public Main()
         {
@@ -28,41 +23,99 @@ namespace Demo.LeanCloud.WindowsForms
 
         private void Main_Load(object sender, EventArgs e)
         {
-            _messages = new List<IAVIMMessage>();
-            var config = new AVClient.Configuration
-            {
-                ApplicationId = _applicationId,
-                ApplicationKey = _applicationKey
-                //ApiServer = new Uri("http://im-api.phyuance.com"),
-                //經詢問 LeanCloud, 不需要設置以下設定
-                //EngineServer = new Uri(""),
-                //PushServer = new Uri(""),
-                //StatsServer =  new Uri("")
-            };
-            //AVClient.Initialize(config);
-            AVClient.Initialize(_applicationId, _applicationKey);
-
             //地雷!! 要先執行這行, 不然後面在CreateClientAsync時會報 WebSocket 沒有初始化的錯誤
             WebsocketConnection.Link();
 
+            InitialPublishCloud();
             
-
-            _realtime = new AVRealtime(new AVRealtime.Configuration
-            {
-                ApplicationId = _applicationId,
-                ApplicationKey = _applicationKey
-                //RTMRouter = new Uri("http://im-router.phyuance.com")
-            });
-
             _realtime.OnOfflineMessageReceived += (o, args) =>
             {
                 OnRecivedIMOffLineMessage a = RecivedOfflineMessage;
                 Invoke(a, args.Message);
             };
-
-
-
         }
+
+        /// <summary>
+        ///     載入 LeanCloud 公有雲設定
+        /// </summary>
+        private void InitialPublishCloud()
+        {
+            var _applicationId = "bBPbOUuF6mEmL0knL3wnW00b-gzGzoHsz";
+            var _applicationKey = "tCx1qE0VNNghnch5n8PjpgGX";
+
+            var config = new AVClient.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey
+            };
+            AVClient.Initialize(config);
+
+            _realtime = new AVRealtime(new AVRealtime.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey
+            });
+        }
+
+        /// <summary>
+        ///     載入 LeanCloud 私有雲設定
+        /// </summary>
+        private void InitialPrivateCloud()
+        {
+            var _applicationId = "XtesJ6luUX17WTbKYpNtcEzf-JDEV1";
+            var _applicationKey = "o11xvV4AlqYWmpRlPNwsdLyp";
+            var config = new AVClient.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey,
+                ApiServer = new Uri("http://im-api.phyuance.com")
+                //經詢問 LeanCloud, 不需要設置以下設定
+                //EngineServer = new Uri(""),
+                //PushServer = new Uri(""),
+                //StatsServer =  new Uri("")
+            };
+            AVClient.Initialize(config);
+
+            _realtime = new AVRealtime(new AVRealtime.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey,
+                RTMRouter = new Uri("http://im-router.phyuance.com")
+            });
+        }
+
+        private void RecivedMessage(IAVIMMessage message)
+        {
+            if (_messages.Any(it => it.Id == message.Id)) return;
+
+            _messages.Add(message);
+            AddConsoleMessage($"已接收來自到 {message.FromClientId} 訊息.");
+            DisplayMessage(message);
+        }
+
+        private void RecivedOfflineMessage(IAVIMMessage message)
+        {
+            if (_messages.Any(it => it.Id == message.Id)) return;
+
+            _messages.Add(message);
+            AddConsoleMessage($"已接收來自到 {message.FromClientId} 的離線訊息.");
+            DisplayMessage(message);
+        }
+
+        private void lb_ConversationList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AddConsoleMessage($"切換對話訊息{lb_ConversationList.SelectedItem.ToString()}");
+            CreateConversationUseId(lb_ConversationList.SelectedItem.ToString().Split('-')[0]);
+        }
+
+        private void CreateConversationUseId(string conversationId)
+        {
+            GetConversation(conversationId);
+        }
+
+        private delegate void OnRecivedIMMessage(IAVIMMessage message);
+
+        private delegate void OnRecivedIMOffLineMessage(IAVIMMessage message);
 
         #region UI        
 
@@ -80,17 +133,14 @@ namespace Demo.LeanCloud.WindowsForms
         /// </summary>
         private void RefreshFriends()
         {
-            List<string> friends = GetAllFriends(_client.ClientId);
+            var friends = GetAllFriends(_client.ClientId);
             lb_Friends.Items.Clear();
-            foreach (var friend in friends)
-            {
-                lb_Friends.Items.Add(friend);
-            }
+            lb_Friends.DataSource = friends;
         }
 
         private List<string> GetAllFriends(string clientClientId)
         {
-            var defaultUser = new List<string> { "Kodofish", "Andy", "Neo", "Jerry" };
+            var defaultUser = new List<string> {"Kodofish", "Andy", "Neo", "Jerry"};
             return defaultUser.Where(it => it.ToLower() != clientClientId.ToLower()).ToList();
         }
 
@@ -100,7 +150,7 @@ namespace Demo.LeanCloud.WindowsForms
         private void RefreshConversation()
         {
             lb_ConversationTitle.Text = $"對話內容:{_conversation.Name}";
-            tb_Conversation.Text = string.Empty;
+            tb_ConversationContent.Text = string.Empty;
             _messages = new List<IAVIMMessage>();
         }
 
@@ -121,10 +171,17 @@ namespace Demo.LeanCloud.WindowsForms
             attr.Add("isSticky", false);
 
             AddConsoleMessage($"建立 {tb_UserName.Text} 與 {friendName} 對話");
-            _conversation = await _client.CreateConversationAsync(friendName, name: $"{tb_UserName.Text} and {friendName} conversation", options:attr);
-            
+            _conversation = await _client.CreateConversationAsync(friendName, name: $"{tb_UserName.Text} and {friendName} conversation", options: attr);
+
             RefreshConversation();
             AddConsoleMessage($"對話建立完成. ConversationId= {_conversation.ConversationId}");
+        }
+
+        private async void GetConversation(string conversationId)
+        {
+            _conversation = _conversations.FirstOrDefault(it => it.ConversationId == conversationId);
+            RefreshConversation();
+            AddConsoleMessage($"對話刷新完成. ConversationId= {_conversation.ConversationId}");
         }
 
         private void RefreshConversationMessage()
@@ -144,11 +201,11 @@ namespace Demo.LeanCloud.WindowsForms
             {
                 case "AVIMTextMessage":
                     if (!(message is AVIMTextMessage m)) return;
-                    tb_Conversation.Text += $"{m.ServerTimestamp} - {m.FromClientId} 說 {m.TextContent} {Environment.NewLine}";
+                    tb_ConversationContent.Text += $"{m.ServerTimestamp} - {m.FromClientId} 說 {m.TextContent} {Environment.NewLine}";
                     break;
                 case "AVIMBinaryMessage":
                     if (!(message is AVIMBinaryMessage bm)) return;
-                    tb_Conversation.Text += $"{bm.ServerTimestamp} - {bm.FromClientId} 說 {bm.Content} {Environment.NewLine}";
+                    tb_ConversationContent.Text += $"{bm.ServerTimestamp} - {bm.FromClientId} 說 {bm.Content} {Environment.NewLine}";
                     break;
                 default:
                     break;
@@ -172,30 +229,45 @@ namespace Demo.LeanCloud.WindowsForms
                 MessageBox.Show("請輸入使用者名稱");
                 return;
             }
-            tb_Conversation.Text = string.Empty;
+            tb_ConversationContent.Text = string.Empty;
             AddConsoleMessage($"開始登入 {tb_UserName.Text}");
 
             _client = await _realtime.CreateClientAsync(tb_UserName.Text);
             _client.OnMessageReceived += ClientOnOnMessageReceived;
 
-            ClearConversation();
             RefreshFriends();
+            GetExistConversations();
+            ClearConversationContent();
+
+
             AddConsoleMessage($"{tb_UserName.Text} 登入成功");
         }
 
-        private void ClearConversation()
+        /// <summary>
+        ///     查詢 Conversation
+        ///     Gets the exist conversations.
+        /// </summary>
+        private async void GetExistConversations()
+        {
+            lb_ConversationList.Items.Clear();
+            _conversations = await _client.GetQuery().FindAsync();
+            //_conversations = await _client.GetQuery().Limit(1000).FindAsync();
+            lb_ConversationList.DataSource = _conversations.Select(it => $"{it.ConversationId}-{it.Name}").ToList();
+        }
+
+        private void ClearConversationContent()
         {
             _conversation = null;
-            tb_Conversation.Text = String.Empty;
+            tb_ConversationContent.Text = string.Empty;
             lb_ConversationTitle.Text = "對話內容";
         }
 
         /// <summary>
         ///     在線接收訊息
-        /// Clients the on on message received.
+        ///     Clients the on on message received.
         /// </summary>
         /// <param name="sender">The sender.</param>
-        /// <param name="avimMessageEventArgs">The <see cref="AVIMMessageEventArgs"/> instance containing the event data.</param>
+        /// <param name="avimMessageEventArgs">The <see cref="AVIMMessageEventArgs" /> instance containing the event data.</param>
         private void ClientOnOnMessageReceived(object sender, AVIMMessageEventArgs avimMessageEventArgs)
         {
             OnRecivedIMMessage a = RecivedMessage;
@@ -233,30 +305,13 @@ namespace Demo.LeanCloud.WindowsForms
             if (e.KeyChar == (int) Keys.Enter)
                 bt_SendMessage_Click(bt_SendMessage, null);
         }
+
         private void tb_UserName_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == (int)Keys.Enter)
+            if (e.KeyChar == (int) Keys.Enter)
                 bt_Login_Click(bt_Login, null);
         }
 
         #endregion
-
-        private void RecivedMessage(IAVIMMessage message)
-        {
-            if (_messages.Any(it => it.Id == message.Id)) return;
-
-            _messages.Add(message);
-            AddConsoleMessage($"已接收來自到 {message.FromClientId} 訊息.");
-            DisplayMessage(message);
-        }
-
-        private void RecivedOfflineMessage(IAVIMMessage message)
-        {
-            if (_messages.Any(it => it.Id == message.Id)) return;
-
-            _messages.Add(message);
-            AddConsoleMessage($"已接收來自到 {message.FromClientId} 的離線訊息.");
-            DisplayMessage(message);
-        }
     }
 }
