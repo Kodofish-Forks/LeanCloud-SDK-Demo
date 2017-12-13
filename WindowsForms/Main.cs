@@ -21,23 +21,45 @@ namespace Demo.LeanCloud.WindowsForms
             _realTimeService.onMessageSended += DisplayMessage;
             _realTimeService.onRecivedOnLineMessageHandler += message =>
             {
-                OnRecivedMessage onRecivedMessage = RecivedOfflineMessage;
+                OnRecivedMessage onRecivedMessage = RecivedOnlineMessage;
                 Invoke(onRecivedMessage, message);
                 
             };
+
+            _realTimeService.onRecivedOffLineMessageHandler += message =>
+            {
+                OnRecivedMessage onRecivedMessage = RecivedOfflineMessage;
+                Invoke(onRecivedMessage, message);
+
+                RefreshConversations();
+            };
+        }
+
+        private void DecidedDisplayMessage(IAVIMMessage message)
+        {
+            if (message.ConversationId == _realTimeService.CurrentConversation.ConversationId)
+            {
+                DisplayMessage(message);
+                _realTimeService.ReadConversation();
+                RefreshConversations();
+            }
+        }
+
+        private void RecivedOnlineMessage(IAVIMMessage message)
+        {
+            AddConsoleMessage($"已接收來自到 {message.FromClientId} 的線上訊息.");
+            DecidedDisplayMessage(message);
         }
 
         private void RecivedOfflineMessage(IAVIMMessage message)
         {
             AddConsoleMessage($"已接收來自到 {message.FromClientId} 的離線訊息.");
-            if (message.ConversationId == _realTimeService.CurrentConversation.ConversationId)
-            {
-                DisplayMessage(message);
-            }
+            DecidedDisplayMessage(message);
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
+            //減少手動測試的動作
             bt_Login_Click(null,null);
         }
 
@@ -145,7 +167,7 @@ namespace Demo.LeanCloud.WindowsForms
         private void RefreshConversations()
         {
             //lb_ConversationList.Items.Clear();
-            lb_ConversationList.DataSource = _realTimeService.Conversations.Select(it => $"{it.ConversationId}-{it.Name}").ToList();
+            lb_ConversationList.DataSource = _realTimeService.Conversations.Select(it => $"[{_realTimeService.GetNotReadAmount(it.ConversationId)}]-{it.ConversationId}-{it.Name}").ToList();
             lb_ConversationList.SelectedIndex = -1;
         }
 
@@ -201,7 +223,7 @@ namespace Demo.LeanCloud.WindowsForms
         {
             if (lb_ConversationList.SelectedIndex < 0) return;
             AddConsoleMessage($"切換對話訊息{lb_ConversationList.SelectedItem.ToString()}");
-            CreateConversationUseId(lb_ConversationList.SelectedItem.ToString().Split('-')[0]);
+            CreateConversationUseId(lb_ConversationList.SelectedItem.ToString().Split('-')[1]);
         }
 
         private void CreateConversationUseId(string conversationId)
@@ -222,6 +244,7 @@ namespace Demo.LeanCloud.WindowsForms
                 case "AVIMTextMessage":
                     if (!(message is AVIMTextMessage m)) return;
                     tb_ConversationContent.Text += $"{m.ServerTimestamp} - {m.FromClientId} 說 {m.TextContent} {Environment.NewLine}";
+                    
                     break;
                 case "AVIMBinaryMessage":
                     if (!(message is AVIMBinaryMessage bm)) return;
@@ -230,6 +253,18 @@ namespace Demo.LeanCloud.WindowsForms
                 default:
                     break;
             }
+        }
+
+        
+        /// <summary>
+        ///     載入歷史訊息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_LoadMessage_Click(object sender, EventArgs e)
+        {
+            _realTimeService.LoadMessage();
+            RefreshConversation();
         }
     }
 }

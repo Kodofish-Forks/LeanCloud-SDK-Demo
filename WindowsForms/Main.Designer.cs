@@ -41,11 +41,12 @@
             this.lb_ConversationList = new System.Windows.Forms.ListBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.bt_LoadMessage = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tb_Console
             // 
-            this.tb_Console.Location = new System.Drawing.Point(33, 658);
+            this.tb_Console.Location = new System.Drawing.Point(33, 768);
             this.tb_Console.Multiline = true;
             this.tb_Console.Name = "tb_Console";
             this.tb_Console.Size = new System.Drawing.Size(1685, 232);
@@ -103,6 +104,7 @@
             this.tb_ConversationContent.Location = new System.Drawing.Point(1032, 178);
             this.tb_ConversationContent.Multiline = true;
             this.tb_ConversationContent.Name = "tb_ConversationContent";
+            this.tb_ConversationContent.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.tb_ConversationContent.Size = new System.Drawing.Size(686, 370);
             this.tb_ConversationContent.TabIndex = 6;
             // 
@@ -155,17 +157,28 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(33, 620);
+            this.label4.Location = new System.Drawing.Point(33, 732);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(106, 24);
             this.label4.TabIndex = 12;
             this.label4.Text = "系統訊息";
             // 
+            // bt_LoadMessage
+            // 
+            this.bt_LoadMessage.Location = new System.Drawing.Point(1032, 597);
+            this.bt_LoadMessage.Name = "bt_LoadMessage";
+            this.bt_LoadMessage.Size = new System.Drawing.Size(75, 33);
+            this.bt_LoadMessage.TabIndex = 13;
+            this.bt_LoadMessage.Text = "載入歷史訊息";
+            this.bt_LoadMessage.UseVisualStyleBackColor = true;
+            this.bt_LoadMessage.Click += new System.EventHandler(this.bt_LoadMessage_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1728, 905);
+            this.ClientSize = new System.Drawing.Size(1728, 1133);
+            this.Controls.Add(this.bt_LoadMessage);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.lb_ConversationList);
@@ -202,5 +215,6 @@
         private System.Windows.Forms.ListBox lb_ConversationList;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button bt_LoadMessage;
     }
 }

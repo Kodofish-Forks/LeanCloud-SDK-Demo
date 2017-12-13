@@ -17,13 +17,19 @@ namespace Demo.LeanCloud.WindowsForms
         private readonly IList<IAVIMMessage> _messages;
 
         private readonly bool _usePrivateCloud;
-        private AVIMConversation _currentConversation;
         private IList<AVIMConversation> _conversations;
+
+        /// <summary>
+        ///     The new messages
+        /// </summary>
+        private IList<IAVIMMessage> _newMessages;
+
         private string _userId;
 
         public LeanCloudService(bool usePrivateCloud = false)
         {
             _messages = new List<IAVIMMessage>();
+            _newMessages = new List<IAVIMMessage>();
             _conversations = new List<AVIMConversation>();
             _usePrivateCloud = usePrivateCloud;
         }
@@ -31,8 +37,10 @@ namespace Demo.LeanCloud.WindowsForms
 
         public AVRealtime Realtime { get; set; }
         public AVIMClient Client { get; set; }
-        public AVIMConversation CurrentConversation => _currentConversation;
+        public AVIMConversation CurrentConversation { get; private set; }
+
         public IEnumerable<AVIMConversation> Conversations => _conversations;
+
         /// <summary>
         ///     Gets all message.
         /// </summary>
@@ -57,6 +65,10 @@ namespace Demo.LeanCloud.WindowsForms
             // 建立離線訊息接收事件
             Realtime.OnOfflineMessageReceived += (o, args) =>
             {
+                //將離線訊息另外儲存起來
+                if (_newMessages.All(it => it.Id != args.Message.Id))
+                    _newMessages.Add(args.Message);
+
                 RecivedMessage(args.Message);
                 onRecivedOffLineMessageHandler?.Invoke(args.Message);
             };
@@ -119,8 +131,14 @@ namespace Demo.LeanCloud.WindowsForms
             Client = await Realtime.CreateClientAsync(userId);
 
             // 建立在線訊息接收事件
+            
             Client.OnMessageReceived += (o, args) =>
             {
+                if (_messages.Any(it => it.Id == args.Message.Id)) return;
+
+                if (_newMessages.All(it => it.Id != args.Message.Id))
+                    _newMessages.Add(args.Message);
+
                 RecivedMessage(args.Message);
                 onRecivedOnLineMessageHandler?.Invoke(args.Message);
             };
@@ -140,17 +158,15 @@ namespace Demo.LeanCloud.WindowsForms
             attr.Add("type", "private");
             attr.Add("isSticky", false);
 
-            _currentConversation = await Client.CreateConversationAsync(toUserId, name: $"{_userId} and {toUserId} conversation", options: attr);
-
-            if (_conversations.All(it => it.ConversationId != _currentConversation.ConversationId))
-            {
-                _conversations.Add(_currentConversation);
-            }
+            CurrentConversation = await Client.CreateConversationAsync(toUserId, name: $"{_userId} and {toUserId} conversation", options: attr);
+            
+            if (_conversations.All(it => it.ConversationId != CurrentConversation.ConversationId))
+                _conversations.Add(CurrentConversation);
         }
 
         public void ChangeConversation(string conversationId)
         {
-            _currentConversation = _conversations.FirstOrDefault(it => it.ConversationId == conversationId);
+            CurrentConversation = _conversations.FirstOrDefault(it => it.ConversationId == conversationId);
         }
 
         public async Task<IAVIMMessage> SendMessage(string message)
@@ -192,6 +208,15 @@ namespace Demo.LeanCloud.WindowsForms
 
         #endregion
 
+        /// <summary>
+        /// 將未讀訊息清掉
+        /// Reads the conversation.
+        /// </summary>
+        public void ReadConversation()
+        {
+            _newMessages = _newMessages.Where(it => it.ConversationId == CurrentConversation.ConversationId).ToList();
+        }
+
         #region "Events"
 
         /// <summary>
@@ -215,6 +240,30 @@ namespace Demo.LeanCloud.WindowsForms
         public event OnMessageSended onMessageSended;
 
 
+
         #endregion
+
+        /// <summary>
+        /// 取得 Conversation 未讀數
+        /// Gets the not read amount.
+        /// </summary>
+        /// <param name="conversationId">The conversation identifier.</param>
+        /// <returns></returns>
+        public int GetNotReadAmount(string conversationId)
+        {
+            return _newMessages.Count(it => it.ConversationId == conversationId);
+        }
+
+        public void LoadMessage()
+        {
+            var firstmessage = _messages.Where(it => it.ConversationId == CurrentConversation.ConversationId).OrderBy(it => it.ServerTimestamp).FirstOrDefault()?.ConversationId;
+
+            var querymessage = Client.QueryMessageAsync(CurrentConversation, firstmessage, null, null, null, 20).Result;
+
+            foreach (var message in querymessage)
+            {
+                RecivedMessage(message);
+            }
+        }
     }
 }
