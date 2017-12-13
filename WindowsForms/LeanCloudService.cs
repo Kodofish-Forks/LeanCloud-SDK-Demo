@@ -1,0 +1,220 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using LeanCloud;
+using LeanCloud.Realtime;
+using Websockets.Net;
+
+namespace Demo.LeanCloud.WindowsForms
+{
+    public class LeanCloudService
+    {
+        /// <summary>
+        ///     The messages- 對話訊息
+        /// </summary>
+        private readonly IList<IAVIMMessage> _messages;
+
+        private readonly bool _usePrivateCloud;
+        private AVIMConversation _currentConversation;
+        private IList<AVIMConversation> _conversations;
+        private string _userId;
+
+        public LeanCloudService(bool usePrivateCloud = false)
+        {
+            _messages = new List<IAVIMMessage>();
+            _conversations = new List<AVIMConversation>();
+            _usePrivateCloud = usePrivateCloud;
+        }
+
+
+        public AVRealtime Realtime { get; set; }
+        public AVIMClient Client { get; set; }
+        public AVIMConversation CurrentConversation => _currentConversation;
+        public IEnumerable<AVIMConversation> Conversations => _conversations;
+        /// <summary>
+        ///     Gets all message.
+        /// </summary>
+        /// <value>
+        ///     All message.
+        /// </value>
+        public IList<IAVIMMessage> AllMessage => _messages;
+
+        /// <summary>
+        ///     Initials the real time.
+        /// </summary>
+        public void InitialRealTime()
+        {
+            //地雷!! 要先執行這行, 不然後面在CreateClientAsync時會報 WebSocket 沒有初始化的錯誤
+            WebsocketConnection.Link();
+
+            if (_usePrivateCloud)
+                InitialPrivateCloud();
+            else
+                InitialPublishCloud();
+
+            // 建立離線訊息接收事件
+            Realtime.OnOfflineMessageReceived += (o, args) =>
+            {
+                RecivedMessage(args.Message);
+                onRecivedOffLineMessageHandler?.Invoke(args.Message);
+            };
+        }
+
+        /// <summary>
+        ///     載入 LeanCloud 公有雲設定
+        /// </summary>
+        private void InitialPublishCloud()
+        {
+            var _applicationId = "bBPbOUuF6mEmL0knL3wnW00b-gzGzoHsz";
+            var _applicationKey = "tCx1qE0VNNghnch5n8PjpgGX";
+
+            var config = new AVClient.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey
+            };
+            AVClient.Initialize(config);
+
+            Realtime = new AVRealtime(new AVRealtime.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey
+            });
+            AVRealtime.WebSocketLog(s => Debug.WriteLine(s));
+        }
+
+        /// <summary>
+        ///     載入 LeanCloud 私有雲設定
+        /// </summary>
+        private void InitialPrivateCloud()
+        {
+            var _applicationId = "XtesJ6luUX17WTbKYpNtcEzf-JDEV1";
+            var _applicationKey = "o11xvV4AlqYWmpRlPNwsdLyp";
+            var config = new AVClient.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey,
+                ApiServer = new Uri("http://im-api.phyuance.com")
+                //經詢問 LeanCloud, 不需要設置以下設定
+                //EngineServer = new Uri(""),
+                //PushServer = new Uri(""),
+                //StatsServer =  new Uri("")
+            };
+            AVClient.Initialize(config);
+
+            Realtime = new AVRealtime(new AVRealtime.Configuration
+            {
+                ApplicationId = _applicationId,
+                ApplicationKey = _applicationKey,
+                RTMRouter = new Uri("http://im-router.phyuance.com")
+            });
+            AVRealtime.WebSocketLog(s => Debug.WriteLine(s));
+        }
+
+        public async Task CreateClient(string userId)
+        {
+            _userId = userId;
+            Client = await Realtime.CreateClientAsync(userId);
+
+            // 建立在線訊息接收事件
+            Client.OnMessageReceived += (o, args) =>
+            {
+                RecivedMessage(args.Message);
+                onRecivedOnLineMessageHandler?.Invoke(args.Message);
+            };
+
+            await GetAllConversations();
+        }
+
+        /// <summary>
+        ///     建立對話
+        ///     Creates the conversation.
+        /// </summary>
+        /// <param name="toUserId">To user identifier.</param>
+        /// <returns></returns>
+        public async Task CreateConversation(string toUserId)
+        {
+            IDictionary<string, object> attr = new Dictionary<string, object>();
+            attr.Add("type", "private");
+            attr.Add("isSticky", false);
+
+            _currentConversation = await Client.CreateConversationAsync(toUserId, name: $"{_userId} and {toUserId} conversation", options: attr);
+
+            if (_conversations.All(it => it.ConversationId != _currentConversation.ConversationId))
+            {
+                _conversations.Add(_currentConversation);
+            }
+        }
+
+        public void ChangeConversation(string conversationId)
+        {
+            _currentConversation = _conversations.FirstOrDefault(it => it.ConversationId == conversationId);
+        }
+
+        public async Task<IAVIMMessage> SendMessage(string message)
+        {
+            var textMessage = new AVIMTextMessage(message);
+
+            var sendResult = await CurrentConversation.SendMessageAsync(textMessage);
+
+            RecivedMessage(sendResult);
+
+            onMessageSended?.Invoke(sendResult);
+
+            return sendResult;
+        }
+
+        /// <summary>
+        ///     從 LeanCloud 取得所有已存在的 Conversations
+        /// </summary>
+        /// <returns></returns>
+        private async Task GetAllConversations()
+        {
+            _conversations = (await Client.GetQuery().FindAsync()).ToList();
+            //_conversations = await _client.GetQuery().Limit(1000).FindAsync();
+        }
+
+        #region "Message"
+
+        /// <summary>
+        ///     接收訊息
+        ///     Reciveds the message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        private void RecivedMessage(IAVIMMessage message)
+        {
+            if (_messages.Any(it => it.Id == message.Id)) return;
+
+            _messages.Add(message);
+        }
+
+        #endregion
+
+        #region "Events"
+
+        /// <summary>
+        ///     On recived offline message
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public delegate void OnRecivedOffLineMessageHandler(IAVIMMessage message);
+
+        public event OnRecivedOffLineMessageHandler onRecivedOffLineMessageHandler;
+
+        /// <summary>
+        ///     On recived online message
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public delegate void OnRecivedOnLineMessageHandler(IAVIMMessage message);
+
+        public event OnRecivedOnLineMessageHandler onRecivedOnLineMessageHandler;
+
+        public delegate void OnMessageSended(IAVIMMessage message);
+
+        public event OnMessageSended onMessageSended;
+
+
+        #endregion
+    }
+}

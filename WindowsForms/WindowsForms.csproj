@@ -98,6 +98,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContactService.cs" />
+    <Compile Include="LeanCloudService.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

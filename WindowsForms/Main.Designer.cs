@@ -57,6 +57,7 @@
             this.tb_UserName.Name = "tb_UserName";
             this.tb_UserName.Size = new System.Drawing.Size(296, 36);
             this.tb_UserName.TabIndex = 1;
+            this.tb_UserName.Text = "Kodofish";
             this.tb_UserName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tb_UserName_KeyPress);
             // 
             // label1
