@@ -98,8 +98,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContactService.cs" />
-    <Compile Include="LeanCloudService.cs" />
+    <Compile Include="frm_AddGroup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frm_AddGroup.Designer.cs">
+      <DependentUpon>frm_AddGroup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Service\ContactService.cs" />
+    <Compile Include="Service\LeanCloudService.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,6 +120,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="frm_AddGroup.resx">
+      <DependentUpon>frm_AddGroup.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>

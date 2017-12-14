@@ -22,14 +22,14 @@ namespace Demo.LeanCloud.WindowsForms
         /// <summary>
         ///     The new messages
         /// </summary>
-        private IList<IAVIMMessage> _newMessages;
+        private IList<IAVIMMessage> _notReadMessage;
 
         private string _userId;
 
         public LeanCloudService(bool usePrivateCloud = false)
         {
             _messages = new List<IAVIMMessage>();
-            _newMessages = new List<IAVIMMessage>();
+            _notReadMessage = new List<IAVIMMessage>();
             _conversations = new List<AVIMConversation>();
             _usePrivateCloud = usePrivateCloud;
         }
@@ -66,8 +66,8 @@ namespace Demo.LeanCloud.WindowsForms
             Realtime.OnOfflineMessageReceived += (o, args) =>
             {
                 //將離線訊息另外儲存起來
-                if (_newMessages.All(it => it.Id != args.Message.Id))
-                    _newMessages.Add(args.Message);
+                if (_notReadMessage.All(it => it.Id != args.Message.Id))
+                    _notReadMessage.Add(args.Message);
 
                 RecivedMessage(args.Message);
                 onRecivedOffLineMessageHandler?.Invoke(args.Message);
@@ -130,19 +130,19 @@ namespace Demo.LeanCloud.WindowsForms
             _userId = userId;
             Client = await Realtime.CreateClientAsync(userId);
 
-            // 建立在線訊息接收事件
+                // 建立在線訊息接收事件
+                Client.OnMessageReceived += (o, args) =>
+                {
+                    if (_messages.Any(it => it.Id == args.Message.Id)) return;
+
+                    if (_notReadMessage.All(it => it.Id != args.Message.Id))
+                        _notReadMessage.Add(args.Message);
+
+                    RecivedMessage(args.Message);
+                    onRecivedOnLineMessageHandler?.Invoke(args.Message);
+                };
+
             
-            Client.OnMessageReceived += (o, args) =>
-            {
-                if (_messages.Any(it => it.Id == args.Message.Id)) return;
-
-                if (_newMessages.All(it => it.Id != args.Message.Id))
-                    _newMessages.Add(args.Message);
-
-                RecivedMessage(args.Message);
-                onRecivedOnLineMessageHandler?.Invoke(args.Message);
-            };
-
             await GetAllConversations();
         }
 
@@ -214,7 +214,7 @@ namespace Demo.LeanCloud.WindowsForms
         /// </summary>
         public void ReadConversation()
         {
-            _newMessages = _newMessages.Where(it => it.ConversationId == CurrentConversation.ConversationId).ToList();
+            _notReadMessage = _notReadMessage.Where(it => it.ConversationId == CurrentConversation.ConversationId).ToList();
         }
 
         #region "Events"
@@ -251,7 +251,7 @@ namespace Demo.LeanCloud.WindowsForms
         /// <returns></returns>
         public int GetNotReadAmount(string conversationId)
         {
-            return _newMessages.Count(it => it.ConversationId == conversationId);
+            return _notReadMessage.Count(it => it.ConversationId == conversationId);
         }
 
         public void LoadMessage()

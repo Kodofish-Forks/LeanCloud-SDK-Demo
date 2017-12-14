@@ -9,13 +9,18 @@ namespace Demo.LeanCloud.WindowsForms
 {
     public partial class Main : Form
     {
-        private readonly LeanCloudService _realTimeService;
+        private LeanCloudService _realTimeService;
 
         private delegate void OnRecivedMessage(IAVIMMessage message);
 
         public Main()
         {
             InitializeComponent();
+            
+        }
+
+        private void InitialRealTimeService()
+        {
             _realTimeService = new LeanCloudService();
             _realTimeService.InitialRealTime();
             _realTimeService.onMessageSended += DisplayMessage;
@@ -23,21 +28,19 @@ namespace Demo.LeanCloud.WindowsForms
             {
                 OnRecivedMessage onRecivedMessage = RecivedOnlineMessage;
                 Invoke(onRecivedMessage, message);
-                
             };
 
             _realTimeService.onRecivedOffLineMessageHandler += message =>
             {
                 OnRecivedMessage onRecivedMessage = RecivedOfflineMessage;
                 Invoke(onRecivedMessage, message);
-
-                RefreshConversations();
             };
         }
 
         private void DecidedDisplayMessage(IAVIMMessage message)
         {
-            if (message.ConversationId == _realTimeService.CurrentConversation.ConversationId)
+
+            if (_realTimeService.CurrentConversation != null && message.ConversationId == _realTimeService.CurrentConversation.ConversationId)
             {
                 DisplayMessage(message);
                 _realTimeService.ReadConversation();
@@ -149,7 +152,10 @@ namespace Demo.LeanCloud.WindowsForms
                 MessageBox.Show("請輸入使用者名稱");
                 return;
             }
-            
+
+            AddConsoleMessage("初始化 RealTime Service.");
+            InitialRealTimeService();
+
             AddConsoleMessage($"開始登入 {tb_UserName.Text}");
 
             await _realTimeService.CreateClient(tb_UserName.Text);
@@ -266,5 +272,18 @@ namespace Demo.LeanCloud.WindowsForms
             _realTimeService.LoadMessage();
             RefreshConversation();
         }
+
+        private void bt_AddGroup_Click(object sender, EventArgs e)
+        {
+            var frm = new frm_AddGroup(_realTimeService);
+            frm.FormClosing += (o, args) =>
+            {
+                this.Show();
+            };
+
+            this.Hide();
+            frm.Show();
+        }
+
     }
 }

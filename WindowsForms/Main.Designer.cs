@@ -42,6 +42,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.bt_LoadMessage = new System.Windows.Forms.Button();
+            this.bt_AddGroup = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tb_Console
@@ -167,17 +168,28 @@
             // 
             this.bt_LoadMessage.Location = new System.Drawing.Point(1032, 597);
             this.bt_LoadMessage.Name = "bt_LoadMessage";
-            this.bt_LoadMessage.Size = new System.Drawing.Size(75, 33);
+            this.bt_LoadMessage.Size = new System.Drawing.Size(169, 37);
             this.bt_LoadMessage.TabIndex = 13;
             this.bt_LoadMessage.Text = "載入歷史訊息";
             this.bt_LoadMessage.UseVisualStyleBackColor = true;
             this.bt_LoadMessage.Click += new System.EventHandler(this.bt_LoadMessage_Click);
+            // 
+            // bt_AddGroup
+            // 
+            this.bt_AddGroup.Location = new System.Drawing.Point(317, 610);
+            this.bt_AddGroup.Name = "bt_AddGroup";
+            this.bt_AddGroup.Size = new System.Drawing.Size(127, 47);
+            this.bt_AddGroup.TabIndex = 14;
+            this.bt_AddGroup.Text = "新增群組";
+            this.bt_AddGroup.UseVisualStyleBackColor = true;
+            this.bt_AddGroup.Click += new System.EventHandler(this.bt_AddGroup_Click);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1728, 1133);
+            this.Controls.Add(this.bt_AddGroup);
             this.Controls.Add(this.bt_LoadMessage);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -216,5 +228,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button bt_LoadMessage;
+        private System.Windows.Forms.Button bt_AddGroup;
     }
 }
