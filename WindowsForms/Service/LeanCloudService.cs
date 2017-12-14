@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using LeanCloud;
 using LeanCloud.Realtime;
 using Websockets.Net;
 
-namespace Demo.LeanCloud.WindowsForms
+namespace Demo.LeanCloud.WindowsForms.Service
 {
     public class LeanCloudService
     {
@@ -164,6 +165,22 @@ namespace Demo.LeanCloud.WindowsForms
                 _conversations.Add(CurrentConversation);
         }
 
+        /// <summary>
+        /// Creates the group.
+        /// </summary>
+        /// <param name="groupName">Name of the group.</param>
+        /// <param name="members">The members.</param>
+        public async Task CreateGroup(string groupName, List<string> members)
+        {
+            var groupConversation = await Client.CreateConversationAsync(name:groupName);
+            foreach (var member in members)
+            {
+                await groupConversation.AddMembersAsync(member);
+            }
+            if (_conversations.All(it => it.ConversationId != groupConversation.ConversationId))
+                _conversations.Add(groupConversation);
+        }
+
         public void ChangeConversation(string conversationId)
         {
             CurrentConversation = _conversations.FirstOrDefault(it => it.ConversationId == conversationId);
@@ -235,6 +252,10 @@ namespace Demo.LeanCloud.WindowsForms
 
         public event OnRecivedOnLineMessageHandler onRecivedOnLineMessageHandler;
 
+        /// <summary>
+        ///     On message sended
+        /// </summary>
+        /// <param name="message">The message.</param>
         public delegate void OnMessageSended(IAVIMMessage message);
 
         public event OnMessageSended onMessageSended;
@@ -265,5 +286,8 @@ namespace Demo.LeanCloud.WindowsForms
                 RecivedMessage(message);
             }
         }
+
+
+        
     }
 }

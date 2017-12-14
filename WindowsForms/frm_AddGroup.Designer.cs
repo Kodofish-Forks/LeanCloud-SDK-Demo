@@ -30,9 +30,9 @@
         {
             this.bt_CloseForm = new System.Windows.Forms.Button();
             this.tb_GroupName = new System.Windows.Forms.TextBox();
-            this.clb_Members = new System.Windows.Forms.CheckedListBox();
             this.bt_AddGroup = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
+            this.lb_Members = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // bt_CloseForm
@@ -51,14 +51,6 @@
             this.tb_GroupName.Name = "tb_GroupName";
             this.tb_GroupName.Size = new System.Drawing.Size(502, 36);
             this.tb_GroupName.TabIndex = 1;
-            // 
-            // clb_Members
-            // 
-            this.clb_Members.FormattingEnabled = true;
-            this.clb_Members.Location = new System.Drawing.Point(143, 138);
-            this.clb_Members.Name = "clb_Members";
-            this.clb_Members.Size = new System.Drawing.Size(502, 407);
-            this.clb_Members.TabIndex = 2;
             // 
             // bt_AddGroup
             // 
@@ -79,14 +71,24 @@
             this.label1.TabIndex = 4;
             this.label1.Text = "群組名稱";
             // 
+            // lb_Members
+            // 
+            this.lb_Members.FormattingEnabled = true;
+            this.lb_Members.ItemHeight = 24;
+            this.lb_Members.Location = new System.Drawing.Point(143, 120);
+            this.lb_Members.Name = "lb_Members";
+            this.lb_Members.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
+            this.lb_Members.Size = new System.Drawing.Size(502, 436);
+            this.lb_Members.TabIndex = 5;
+            // 
             // frm_AddGroup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(812, 873);
+            this.Controls.Add(this.lb_Members);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.bt_AddGroup);
-            this.Controls.Add(this.clb_Members);
             this.Controls.Add(this.tb_GroupName);
             this.Controls.Add(this.bt_CloseForm);
             this.Name = "frm_AddGroup";
@@ -100,8 +102,8 @@
 
         private System.Windows.Forms.Button bt_CloseForm;
         private System.Windows.Forms.TextBox tb_GroupName;
-        private System.Windows.Forms.CheckedListBox clb_Members;
         private System.Windows.Forms.Button bt_AddGroup;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ListBox lb_Members;
     }
 }

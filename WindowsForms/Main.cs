@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Demo.LeanCloud.WindowsForms.Service;
 using LeanCloud.Realtime;
 
 namespace Demo.LeanCloud.WindowsForms
@@ -10,18 +11,23 @@ namespace Demo.LeanCloud.WindowsForms
     public partial class Main : Form
     {
         private LeanCloudService _realTimeService;
+        private readonly bool _isUsePrivateCloud;
 
         private delegate void OnRecivedMessage(IAVIMMessage message);
 
         public Main()
         {
+            _isUsePrivateCloud = Convert.ToBoolean(System.Configuration.ConfigurationManager.AppSettings["IsUsePrivateCloud"]);
             InitializeComponent();
             
         }
 
+        /// <summary>
+        /// Initials the real time service.
+        /// </summary>
         private void InitialRealTimeService()
         {
-            _realTimeService = new LeanCloudService();
+            _realTimeService = new LeanCloudService(_isUsePrivateCloud);
             _realTimeService.InitialRealTime();
             _realTimeService.onMessageSended += DisplayMessage;
             _realTimeService.onRecivedOnLineMessageHandler += message =>
@@ -134,6 +140,24 @@ namespace Demo.LeanCloud.WindowsForms
             AddConsoleMessage($"對話刷新完成. ConversationId= {_realTimeService.CurrentConversation.ConversationId}");
         }
 
+        /// <summary>
+        ///     更新 Conversations 至 UI
+        /// </summary>
+        private void RefreshConversations()
+        {
+            lb_ConversationList.DataSource = _realTimeService.Conversations.Select(it => $"[{_realTimeService.GetNotReadAmount(it.ConversationId)}]-{it.ConversationId}-{it.Name}").ToList();
+        }
+
+        /// <summary>
+        ///     清掉 UI 上的 Conversations Content
+        /// </summary>
+        private void ClearConversationContent()
+        {
+            tb_ConversationContent.Text = string.Empty;
+            lb_ConversationTitle.Text = "對話內容";
+        }
+
+
 
         #endregion
 
@@ -167,26 +191,6 @@ namespace Demo.LeanCloud.WindowsForms
             AddConsoleMessage($"{tb_UserName.Text} 登入成功");
         }
 
-        /// <summary>
-        ///     更新 Conversations 至 UI
-        /// </summary>
-        private void RefreshConversations()
-        {
-            //lb_ConversationList.Items.Clear();
-            lb_ConversationList.DataSource = _realTimeService.Conversations.Select(it => $"[{_realTimeService.GetNotReadAmount(it.ConversationId)}]-{it.ConversationId}-{it.Name}").ToList();
-            lb_ConversationList.SelectedIndex = -1;
-        }
-
-        
-
-        /// <summary>
-        ///     清掉 UI 上的 Conversations Content
-        /// </summary>
-        private void ClearConversationContent()
-        {
-            tb_ConversationContent.Text = string.Empty;
-            lb_ConversationTitle.Text = "對話內容";
-        }
 
         /// <summary>
         ///     Handles the SelectedIndexChanged event of the lb_Friends control.
