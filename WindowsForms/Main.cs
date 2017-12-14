@@ -289,5 +289,10 @@ namespace Demo.LeanCloud.WindowsForms
             frm.Show();
         }
 
+        private void bt_DeleteConversation_Click(object sender, EventArgs e)
+        {
+            _realTimeService.DeleteConversation(lb_ConversationList.SelectedItem.ToString().Split('-')[1]);
+            MessageBox.Show("SDK 未提供刪除 Conversation 功能");
+        }
     }
 }

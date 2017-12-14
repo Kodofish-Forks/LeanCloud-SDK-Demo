@@ -31,7 +31,8 @@ namespace Demo.LeanCloud.WindowsForms
             //var members = clb_Members.SelectedItems;
             var members = (from object selectedItem in lb_Members.SelectedItems select selectedItem.ToString()).ToList();
 
-            _realTimeService.CreateGroup(tb_GroupName.Text, members);
+            Task.Run(async () => { await _realTimeService.CreateGroup(tb_GroupName.Text, members); });
+
             MessageBox.Show("群組新增成功");
             Close();
         }

@@ -43,6 +43,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.bt_LoadMessage = new System.Windows.Forms.Button();
             this.bt_AddGroup = new System.Windows.Forms.Button();
+            this.bt_DeleteConversation = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tb_Console
@@ -184,11 +185,22 @@
             this.bt_AddGroup.UseVisualStyleBackColor = true;
             this.bt_AddGroup.Click += new System.EventHandler(this.bt_AddGroup_Click);
             // 
+            // bt_DeleteConversation
+            // 
+            this.bt_DeleteConversation.Location = new System.Drawing.Point(451, 610);
+            this.bt_DeleteConversation.Name = "bt_DeleteConversation";
+            this.bt_DeleteConversation.Size = new System.Drawing.Size(136, 47);
+            this.bt_DeleteConversation.TabIndex = 15;
+            this.bt_DeleteConversation.Text = "刪除對話";
+            this.bt_DeleteConversation.UseVisualStyleBackColor = true;
+            this.bt_DeleteConversation.Click += new System.EventHandler(this.bt_DeleteConversation_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1728, 1133);
+            this.Controls.Add(this.bt_DeleteConversation);
             this.Controls.Add(this.bt_AddGroup);
             this.Controls.Add(this.bt_LoadMessage);
             this.Controls.Add(this.label4);
@@ -229,5 +241,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button bt_LoadMessage;
         private System.Windows.Forms.Button bt_AddGroup;
+        private System.Windows.Forms.Button bt_DeleteConversation;
     }
 }

@@ -288,6 +288,9 @@ namespace Demo.LeanCloud.WindowsForms.Service
         }
 
 
-        
+        public void DeleteConversation(string conversationId)
+        {
+            //SDK 未提供刪除 Conversation 功能
+        }
     }
 }
